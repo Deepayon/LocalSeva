@@ -1,0 +1,74 @@
+
+> localseva-frontend@0.1.0 dev
+> next dev
+
+  ▲ Next.js 15.0.0
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 2.7s
+ ○ Compiling /websocket-test ...
+ ✓ Compiled /websocket-test in 11s (1018 modules)
+ HEAD /websocket-test 200 in 12017ms
+ ✓ Compiled in 975ms (472 modules)
+ GET /websocket-test 200 in 112ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1226ms (1024 modules)
+ GET / 200 in 1482ms
+ GET / 200 in 67ms
+ ○ Compiling /api/community/feed ...
+ ✓ Compiled /api/community/feed in 1309ms (1047 modules)
+ GET /api/community/stats 200 in 1612ms
+ GET /api/community/feed 200 in 1828ms
+prisma:query SELECT `main`.`sessions`.`id`, `main`.`sessions`.`userId`, `main`.`sessions`.`sessionToken`, `main`.`sessions`.`expires`, `main`.`sessions`.`createdAt`, `main`.`sessions`.`updatedAt` FROM `main`.`sessions` WHERE (`main`.`sessions`.`sessionToken` = ? AND 1=1) LIMIT ? OFFSET ?
+ GET /api/alerts 200 in 2418ms
+ ○ Compiling /api/health ...
+ ✓ Compiled /api/health in 563ms (1049 modules)
+ GET /api/health 200 in 1106ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1389ms (1052 modules)
+ ⨯ Error: Invariant: missing bootstrap script. This is a bug in Next.js
+    at getRequiredScripts (/home/z/my-project/frontend/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:157:5749)
+    at renderToStream (/home/z/my-project/frontend/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:161:27314)
+    at /home/z/my-project/frontend/node_modules/next/dist/server/lib/trace/tracer.js:222:62
+    at /home/z/my-project/frontend/node_modules/next/dist/server/lib/trace/tracer.js:171:36
+    at NoopContextManager.with (/home/z/my-project/frontend/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/home/z/my-project/frontend/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/home/z/my-project/frontend/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/home/z/my-project/frontend/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /home/z/my-project/frontend/node_modules/next/dist/server/lib/trace/tracer.js:153:103
+    at NoopContextManager.with (/home/z/my-project/frontend/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/home/z/my-project/frontend/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/home/z/my-project/frontend/node_modules/next/dist/server/lib/trace/tracer.js:153:28)
+    at /home/z/my-project/frontend/node_modules/next/dist/server/lib/trace/tracer.js:222:31
+    at renderToHTMLOrFlightImpl (/home/z/my-project/frontend/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:161:18670)
+    at /home/z/my-project/frontend/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:161:26230
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at withWorkStore (/home/z/my-project/frontend/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:154:85914)
+    at /home/z/my-project/frontend/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:161:26051
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at renderToHTMLOrFlight (/home/z/my-project/frontend/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:161:26030)
+    at AppPageRouteModule.render (/home/z/my-project/frontend/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:163:5115)
+    at doRender (/home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:1587:48)
+    at responseGenerator (/home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:1834:34)
+    at ResponseCache.get (/home/z/my-project/frontend/node_modules/next/dist/server/response-cache/index.js:49:20)
+    at DevServer.renderToResponseWithComponentsImpl (/home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:1878:53)
+    at /home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:1095:121
+    at NextTracerImpl.trace (/home/z/my-project/frontend/node_modules/next/dist/server/lib/trace/tracer.js:136:20)
+    at DevServer.renderToResponseWithComponents (/home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:1095:41)
+    at DevServer.renderErrorToResponseImpl (/home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:2550:35)
+    at async DevServer.pipeImpl (/home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:984:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/z/my-project/frontend/node_modules/next/dist/server/next-server.js:281:17)
+    at async DevServer.handleRequestImpl (/home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:877:17)
+    at async /home/z/my-project/frontend/node_modules/next/dist/server/dev/next-dev-server.js:373:20
+    at async Span.traceAsyncFn (/home/z/my-project/frontend/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/home/z/my-project/frontend/node_modules/next/dist/server/dev/next-dev-server.js:370:24)
+    at async invokeRender (/home/z/my-project/frontend/node_modules/next/dist/server/lib/router-server.js:183:21)
+    at async handleRequest (/home/z/my-project/frontend/node_modules/next/dist/server/lib/router-server.js:360:24)
+    at async requestHandlerImpl (/home/z/my-project/frontend/node_modules/next/dist/server/lib/router-server.js:384:13)
+    at async Server.requestListener (/home/z/my-project/frontend/node_modules/next/dist/server/lib/start-server.js:142:13)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1447ms (1287 modules)
+ GET / 500 in 4895ms
+[?25h

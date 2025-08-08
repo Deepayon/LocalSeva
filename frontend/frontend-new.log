@@ -1,0 +1,151 @@
+
+> localseva-frontend@0.1.0 dev
+> next dev
+
+  ▲ Next.js 15.0.0
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 3.7s
+ ○ Compiling / ...
+<w> [webpack.cache.PackFileCacheStrategy] Restoring failed for Compilation/modules|javascript/auto|/home/z/my-project/frontend/node_modules/next/dist/build/webpack/loaders/next-flight-css-loader.js??ruleSet[1].rules[13].oneOf[10].use[0]!/home/z/my-project/frontend/node_modules/next/dist/compiled/mini-css-extract-plugin/loader.js??ruleSet[1].rules[13].oneOf[10].use[1]!/home/z/my-project/frontend/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!/home/z/my-project/frontend/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!/home/z/my-project/frontend/src/app/globals.css|app-pages-browser from pack: Error: incorrect header check
+<w> [webpack.cache.PackFileCacheStrategy] Restoring failed for Compilation/modules|/home/z/my-project/frontend/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!/home/z/my-project/frontend/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!/home/z/my-project/frontend/src/app/globals.css from pack: Error: incorrect header check
+<w> [webpack.cache.PackFileCacheStrategy] Restoring failed for Compilation/modules|css|/home/z/my-project/frontend/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!/home/z/my-project/frontend/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!/home/z/my-project/frontend/src/app/globals.css|0 from pack: Error: incorrect header check
+ ✓ Compiled / in 5.8s (1032 modules)
+ GET / 200 in 6495ms
+ ✓ Compiled in 988ms (479 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
+ ○ Compiling /api/community/stats ...
+ ✓ Compiled /api/community/stats in 692ms (1035 modules)
+ GET /api/community/stats 200 in 1157ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
+ ○ Compiling /api/test-db ...
+<w> [webpack.cache.PackFileCacheStrategy] Restoring failed for Compilation/assets|chunkapp/api/test-db/route from pack: Error: incorrect header check
+ ✓ Compiled /api/test-db in 915ms (1039 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
+prisma:query SELECT COUNT(*) AS `_count._all` FROM (SELECT `main`.`users`.`id` FROM `main`.`users` WHERE 1=1 LIMIT ? OFFSET ?) AS `sub`
+ GET /api/test-db 200 in 2115ms
+ ○ Compiling /api/community/feed ...
+ ✓ Compiled /api/community/feed in 629ms (1041 modules)
+ GET /api/community/feed 200 in 775ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
+ ○ Compiling /api/alerts ...
+ ✓ Compiled /api/alerts in 547ms (1043 modules)
+ GET /api/alerts 200 in 685ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
+ ○ Compiling /api/auth/session ...
+ ✓ Compiled /api/auth/session in 1010ms (1046 modules)
+ GET /api/auth/session 401 in 1177ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
+<w> [webpack.cache.PackFileCacheStrategy] Restoring failed for Compilation/modules|/home/z/my-project/frontend/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!/home/z/my-project/frontend/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!/home/z/my-project/frontend/src/app/globals.css from pack: Error: incorrect header check
+ ✓ Compiled in 4.1s (480 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
+ ⨯ Error: Cannot find module './147.js'
+Require stack:
+- /home/z/my-project/frontend/.next/server/webpack-runtime.js
+- /home/z/my-project/frontend/.next/server/app/api/auth/session/route.js
+- /home/z/my-project/frontend/node_modules/next/dist/server/require.js
+- /home/z/my-project/frontend/node_modules/next/dist/server/load-components.js
+- /home/z/my-project/frontend/node_modules/next/dist/build/utils.js
+- /home/z/my-project/frontend/node_modules/next/dist/build/swc/options.js
+- /home/z/my-project/frontend/node_modules/next/dist/build/swc/index.js
+- /home/z/my-project/frontend/node_modules/next/dist/build/next-config-ts/transpile-config.js
+- /home/z/my-project/frontend/node_modules/next/dist/server/config.js
+- /home/z/my-project/frontend/node_modules/next/dist/server/next.js
+- /home/z/my-project/frontend/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+    at /home/z/my-project/frontend/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/home/z/my-project/frontend/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at __webpack_require__.f.require (/home/z/my-project/frontend/.next/server/webpack-runtime.js:277:28)
+    at /home/z/my-project/frontend/.next/server/webpack-runtime.js:185:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/home/z/my-project/frontend/.next/server/webpack-runtime.js:184:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/home/z/my-project/frontend/.next/server/webpack-runtime.js:236:22)
+    at /home/z/my-project/frontend/.next/server/app/page.js:1:26991
+    at Object.<anonymous> (/home/z/my-project/frontend/.next/server/app/page.js:1:27045)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/home/z/my-project/frontend/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at requirePage (/home/z/my-project/frontend/node_modules/next/dist/server/require.js:103:84)
+    at loadComponentsImpl (/home/z/my-project/frontend/node_modules/next/dist/server/load-components.js:99:57)
+    at async DevServer.findPageComponentsImpl (/home/z/my-project/frontend/node_modules/next/dist/server/next-server.js:732:36)
+    at async DevServer.findPageComponents (/home/z/my-project/frontend/node_modules/next/dist/server/dev/next-dev-server.js:611:20)
+    at async DevServer.renderPageComponent (/home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:2279:24)
+    at async DevServer.renderToResponseImpl (/home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:2330:32)
+    at async DevServer.pipeImpl (/home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:984:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/z/my-project/frontend/node_modules/next/dist/server/next-server.js:281:17)
+    at async DevServer.handleRequestImpl (/home/z/my-project/frontend/node_modules/next/dist/server/base-server.js:877:17)
+    at async /home/z/my-project/frontend/node_modules/next/dist/server/dev/next-dev-server.js:373:20
+    at async Span.traceAsyncFn (/home/z/my-project/frontend/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/home/z/my-project/frontend/node_modules/next/dist/server/dev/next-dev-server.js:370:24)
+    at async invokeRender (/home/z/my-project/frontend/node_modules/next/dist/server/lib/router-server.js:183:21)
+    at async handleRequest (/home/z/my-project/frontend/node_modules/next/dist/server/lib/router-server.js:360:24)
+    at async requestHandlerImpl (/home/z/my-project/frontend/node_modules/next/dist/server/lib/router-server.js:384:13)
+    at async Server.requestListener (/home/z/my-project/frontend/node_modules/next/dist/server/lib/start-server.js:142:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/z/my-project/frontend/.next/server/webpack-runtime.js',
+    '/home/z/my-project/frontend/.next/server/app/api/auth/session/route.js',
+    '/home/z/my-project/frontend/node_modules/next/dist/server/require.js',
+    '/home/z/my-project/frontend/node_modules/next/dist/server/load-components.js',
+    '/home/z/my-project/frontend/node_modules/next/dist/build/utils.js',
+    '/home/z/my-project/frontend/node_modules/next/dist/build/swc/options.js',
+    '/home/z/my-project/frontend/node_modules/next/dist/build/swc/index.js',
+    '/home/z/my-project/frontend/node_modules/next/dist/build/next-config-ts/transpile-config.js',
+    '/home/z/my-project/frontend/node_modules/next/dist/server/config.js',
+    '/home/z/my-project/frontend/node_modules/next/dist/server/next.js',
+    '/home/z/my-project/frontend/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Restoring failed for Compilation/modules|/home/z/my-project/frontend/node_modules/next/dist/compiled/@next/react-refresh-utils/dist/loader.js!/home/z/my-project/frontend/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js??ruleSet[1].rules[16].oneOf[7].use[1]!/home/z/my-project/frontend/node_modules/next/dist/shared/lib/router/router.js from pack: Error: incorrect header check
+<w> [webpack.cache.PackFileCacheStrategy] Restoring failed for Compilation/codeGeneration|/home/z/my-project/frontend/node_modules/next/dist/compiled/@next/react-refresh-utils/dist/loader.js!/home/z/my-project/frontend/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js??ruleSet[1].rules[16].oneOf[7].use[1]!/home/z/my-project/frontend/node_modules/next/dist/shared/lib/router/router.js|webpack from pack: Error: incorrect header check
+<w> [webpack.cache.PackFileCacheStrategy] Restoring failed for Compilation/assets|chunkmain from pack: Error: incorrect header check
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1280ms (1254 modules)
+ GET / 500 in 2248ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
+ GET / 200 in 183ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.9s (1257 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: incorrect header check
+ GET /_next/static/css/app/layout.css?v=1754644356915 404 in 3341ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 3464ms
+ GET /_next/static/chunks/app/page.js 404 in 3439ms
+ GET /_next/static/chunks/main-app.js?v=1754644356915 404 in 3435ms
+ GET / 200 in 1334ms
+ GET /_next/static/css/app/layout.css?v=1754644365316 404 in 22ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 22ms
+ GET /_next/static/chunks/main-app.js?v=1754644365316 404 in 25ms
+ GET /_next/static/chunks/app/page.js 404 in 30ms
+ GET / 200 in 52ms
+ GET /_next/static/chunks/main-app.js?v=1754644369600 404 in 21ms
+ GET /_next/static/css/app/layout.css?v=1754644369600 404 in 32ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 36ms
+ GET /_next/static/chunks/app/page.js 404 in 23ms
+ GET / 200 in 77ms
+ GET /_next/static/css/app/layout.css?v=1754644375293 404 in 34ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 25ms
+ GET /_next/static/chunks/main-app.js?v=1754644375293 404 in 21ms
+ GET /_next/static/chunks/app/page.js 404 in 22ms
+ GET / 200 in 74ms
+ GET /_next/static/css/app/layout.css?v=1754644379575 404 in 28ms
+ GET /_next/static/chunks/main-app.js?v=1754644379575 404 in 22ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 22ms
+ GET /_next/static/chunks/app/page.js 404 in 19ms
+[?25h
