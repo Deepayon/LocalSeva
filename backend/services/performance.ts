@@ -1,4 +1,6 @@
-import { useMemo, useCallback, useState, useEffect } from 'react';
+"use client";
+
+import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 
 // Utility for memoizing expensive computations
 export function useMemoizedCallback<T extends (...args: any[]) => any>(
@@ -51,11 +53,11 @@ export function useLazyImage(src: string, threshold = 0.1) {
 export function usePerformanceMonitor(componentName: string) {
   useEffect(() => {
     const startTime = performance.now();
-    
+
     return () => {
       const endTime = performance.now();
       const renderTime = endTime - startTime;
-      
+
       if (renderTime > 100) { // Log slow renders
         console.warn(`${componentName} took ${renderTime.toFixed(2)}ms to render`);
       }
@@ -100,7 +102,7 @@ export function useCache<T extends (...args: any[]) => any>(
 
   const cachedFn = useCallback((...args: Parameters<T>): ReturnType<T> => {
     const key = keyGenerator(...args);
-    
+
     if (cache.current.has(key)) {
       return cache.current.get(key)!;
     }
@@ -119,5 +121,3 @@ export function useCache<T extends (...args: any[]) => any>(
 
   return cachedFn;
 }
-
-import { useRef } from 'react';

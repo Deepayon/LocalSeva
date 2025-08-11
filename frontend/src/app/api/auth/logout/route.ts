@@ -1,32 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
 
-export async function POST(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const sessionToken = request.headers.get('authorization')?.replace('Bearer ', '');
-    
-    if (!sessionToken) {
-      return NextResponse.json(
-        { error: 'No session token provided' },
-        { status: 401 }
-      );
-    }
-
-    // Delete session
-    await db.session.deleteMany({
-      where: { sessionToken }
-    });
-
-    return NextResponse.json({
+    const response = NextResponse.json({
+      message: 'Logout successful',
       success: true,
-      message: 'Logged out successfully'
     });
 
-  } catch (error) {
-    console.error('Logout error:', error);
-    return NextResponse.json(
-      { error: 'Failed to logout' },
-      { status: 500 }
-    );
+    // Set the token cookie with an expiration date in the past,
+    // which tells the browser to delete it.
+    response.cookies.set('token', '', {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+
+    return response;
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
