@@ -37,6 +37,7 @@ interface User {
   isActive: boolean;
   createdAt: string;
   lastLoginAt?: string;
+  role?: string;
   neighborhood?: {
     id: string;
     name: string;
@@ -72,6 +73,7 @@ interface AdminData {
     totalUsers: number;
     activeUsers: number;
     verifiedUsers: number;
+    adminUsers: number;
     totalNeighborhoods: number;
   };
 }

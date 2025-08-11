@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+// Make sure you are importing PrismaClient correctly
+import { PrismaClient } from '@prisma/client';
+const db = new PrismaClient();
 import { requireAdmin } from '@/middleware/admin';
 
 export async function GET(request: NextRequest) {
@@ -8,7 +10,7 @@ export async function GET(request: NextRequest) {
     const adminCheck = await requireAdmin(request);
     if (!adminCheck.success) {
       return NextResponse.json(
-        { error: 'Unauthorized access' },
+        { error: "Unauthorized access" },
         { status: 401 }
       );
     }
@@ -25,13 +27,13 @@ export async function GET(request: NextRequest) {
             foundItems: true,
             skills: true,
             parkingSpots: true,
-            reviews: true
-          }
-        }
+            reviews: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: "desc",
+      },
     });
 
     // Get neighborhood statistics
@@ -39,10 +41,10 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            users: true
-          }
-        }
-      }
+            users: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json({
@@ -51,17 +53,16 @@ export async function GET(request: NextRequest) {
       neighborhoods,
       summary: {
         totalUsers: users.length,
-        activeUsers: users.filter(u => u.isActive).length,
-        verifiedUsers: users.filter(u => u.verified).length,
-        adminUsers: users.filter(u => u.role === 'admin').length,
-        totalNeighborhoods: neighborhoods.length
-      }
+        activeUsers: users.filter((u) => u.isActive).length,
+        verifiedUsers: users.filter((u) => u.verified).length,
+        adminUsers: users.filter((u) => u.role === "admin").length,
+        totalNeighborhoods: neighborhoods.length,
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching admin users data:', error);
+    console.error("Error fetching admin users data:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch users data' },
+      { error: "Failed to fetch users data" },
       { status: 500 }
     );
   }

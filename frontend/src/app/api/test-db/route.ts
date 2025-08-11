@@ -18,7 +18,7 @@ export async function GET() {
     return NextResponse.json({ 
       success: false, 
       error: 'Database connection failed',
-      message: error.message 
+      message: typeof error === 'object' && error !== null && 'message' in error ? (error as { message: string }).message : String(error)
     }, { status: 500 });
   }
 }

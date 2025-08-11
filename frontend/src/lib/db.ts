@@ -18,5 +18,47 @@ export const db = {
     findUnique: async (where: any) => null,
     create: async (data: any) => ({}),
   },
+  waterSchedules: {
+    findMany: async () => [],
+    findUnique: async (where: any) => null,
+    create: async (data: any) => ({}),
+    update: async (where: any, data: any) => ({}),
+  },
+  powerOutages: {
+    findMany: async () => [],
+    findUnique: async (where: any) => null,
+    create: async (data: any) => ({}),
+    update: async (where: any, data: any) => ({}),
+  },
+  lostItems: {
+    findMany: async () => [],
+    findUnique: async (where: any) => null,
+    create: async (data: any) => ({}),
+    update: async (where: any, data: any) => ({}),
+  },
+  foundItems: {
+    findMany: async () => [],
+    findUnique: async (where: any) => null,
+    create: async (data: any) => ({}),
+    update: async (where: any, data: any) => ({}),
+  },
+  skills: {
+    findMany: async () => [],
+    findUnique: async (where: any) => null,
+    create: async (data: any) => ({}),
+    update: async (where: any, data: any) => ({}),
+  },
+  parkingSpots: {
+    findMany: async () => [],
+    findUnique: async (where: any) => null,
+    create: async (data: any) => ({}),
+    update: async (where: any, data: any) => ({}),
+  },
+  reviews: {
+    findMany: async () => [],
+    findUnique: async (where: any) => null,
+    create: async (data: any) => ({}),
+    update: async (where: any, data: any) => ({}),
+  },
   // Add other models as needed
 };
