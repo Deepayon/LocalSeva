@@ -20,7 +20,7 @@ const io = new Server(server, {
   }
 });
 
-const PORT = process.env.PORT || 8001;
+const PORT = Number(process.env.PORT) || 8001;
 
 // Middleware
 app.use(helmet());
