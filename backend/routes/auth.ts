@@ -90,7 +90,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       success: true,
       message: 'Login successful.',
       token: token,
-      isNewUser: user.name === null, // A simple check to see if the profile is complete
+      isNewUser: user.name === null,
       user: updatedUser,
     });
 
@@ -155,33 +155,34 @@ router.post('/complete-profile', async (req: Request, res: Response) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
         const userId = decoded.userId;
 
-        // --- NEIGHBORHOOD LOGIC (MVP) ---
+        // --- UPDATED NEIGHBORHOOD LOGIC ---
         let neighborhoodRecord;
         if (state && city && pincode) {
-            const neighborhoodName = `${city}, ${state}, ${pincode}`;
-            
-            // Try to find an existing neighborhood based on the unique name
+            // First, check if a neighborhood with this PIN code already exists.
             neighborhoodRecord = await prisma.neighborhood.findFirst({
-                // ** THE FIX IS HERE: Removed `mode: 'insensitive'` which is not supported by SQLite **
-                where: { name: { equals: neighborhoodName } }
+                where: { pincode: pincode.trim() }
             });
 
-            // If it doesn't exist, create a new one
+            // If no neighborhood exists for this PIN code, create a new one.
             if (!neighborhoodRecord) {
+                // Standardize the city name (e.g., "asansol" becomes "Asansol")
+                const formattedCity = city.trim().charAt(0).toUpperCase() + city.trim().slice(1).toLowerCase();
+                const neighborhoodName = `${formattedCity}, ${state}, ${pincode.trim()}`;
+
                 neighborhoodRecord = await prisma.neighborhood.create({
                     data: {
                         name: neighborhoodName,
-                        city: city.trim(),
+                        city: formattedCity,
                         state: state,
-                        pincode: pincode,
-                        latitude: 0, // Placeholder for MVP
-                        longitude: 0, // Placeholder for MVP
+                        pincode: pincode.trim(),
+                        latitude: 0, // Placeholder
+                        longitude: 0, // Placeholder
                     }
                 });
             }
         }
 
-        // Update the user's profile with their name, email, and neighborhood ID
+        // Update the user's profile with their name, email, and the correct neighborhood ID
         const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: {
