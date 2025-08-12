@@ -1,54 +1,73 @@
-import { Server } from 'socket.io';
-import { db } from '../services/db';
+import { Server, Socket } from 'socket.io';
+import jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
 
+const db = new PrismaClient();
+
+// Define a custom interface for the decoded JWT payload for type safety
+interface JwtPayload {
+  userId: string;
+  role: string;
+  iat: number;
+  exp: number;
+}
+
+// Extend the Socket.IO Socket interface to include our custom user property
 declare module 'socket.io' {
   interface Socket {
-    userId?: string;
+    user?: {
+      id: string;
+      role: string;
+    };
   }
 }
 
-interface UserSocket {
-  userId: string;
-  socketId: string;
-}
-
-const connectedUsers = new Map<string, string>(); // userId -> socketId
+const connectedUsers = new Map<string, string>(); // Maps userId to socketId
 
 export const setupSocket = (io: Server) => {
-  io.on('connection', (socket) => {
+  io.on('connection', (socket: Socket) => {
     console.log('Client connected:', socket.id);
-    
-    // Handle user authentication
-    socket.on('authenticate', async (data: { userId: string; sessionToken: string }) => {
+
+    // --- AUTHENTICATION LOGIC (THE FIX) ---
+    // This now verifies the JWT token instead of looking for a database session.
+    socket.on('authenticate', async (data: { sessionToken: string }) => {
       try {
-        // Validate session
-        const session = await db.session.findUnique({
-          where: { sessionToken: data.sessionToken },
-          include: { user: true }
+        if (!data.sessionToken) {
+          throw new Error('No session token provided');
+        }
+        if (!process.env.JWT_SECRET) {
+          throw new Error('JWT_SECRET is not defined on the server.');
+        }
+
+        const decoded = jwt.verify(data.sessionToken, process.env.JWT_SECRET) as JwtPayload;
+
+        if (!decoded || !decoded.userId) {
+          throw new Error('Invalid token payload');
+        }
+
+        const user = await db.user.findUnique({
+          where: { id: decoded.userId },
         });
 
-        if (session && session.userId === data.userId && session.expires > new Date()) {
-          // Store user connection
-          connectedUsers.set(data.userId, socket.id);
-          socket.userId = data.userId;
-          
-          // Join user to their neighborhood room
-          if (session.user.neighborhoodId) {
-            socket.join(`neighborhood:${session.user.neighborhoodId}`);
-          }
-          
-          // Join user to their personal room
-          socket.join(`user:${data.userId}`);
-          
-          console.log(`User ${data.userId} authenticated and connected`);
-          
-          socket.emit('authenticated', { success: true });
-        } else {
-          socket.emit('authenticated', { success: false, error: 'Invalid session' });
+        if (!user) {
+          throw new Error('User not found');
         }
-      } catch (error) {
-        console.error('Authentication error:', error);
-        socket.emit('authenticated', { success: false, error: 'Authentication failed' });
+
+        socket.user = { id: user.id, role: user.role };
+        connectedUsers.set(user.id, socket.id);
+
+        if (user.neighborhoodId) {
+          socket.join(`neighborhood:${user.neighborhoodId}`);
+        }
+        socket.join(`user:${user.id}`);
+
+        console.log(`User ${user.id} authenticated and connected via WebSocket`);
+        socket.emit('authenticated', { success: true });
+
+      } catch (error: any) {
+        console.error('WebSocket Authentication error:', error.message);
+        socket.emit('authenticated', { success: false, error: 'Invalid session' });
+        socket.disconnect();
       }
     });
 
@@ -60,38 +79,31 @@ export const setupSocket = (io: Server) => {
       neighborhoodId?: string;
     }) => {
       try {
-        if (!socket.userId) {
-          socket.emit('error', { message: 'Not authenticated' });
-          return;
+        if (!socket.user) {
+          return socket.emit('error', { message: 'Not authenticated' });
         }
 
         const user = await db.user.findUnique({
-          where: { id: socket.userId },
-          include: { neighborhood: true }
+          where: { id: socket.user.id },
         });
 
-        if (!user) {
-          socket.emit('error', { message: 'User not found' });
-          return;
+        if (!user || !user.neighborhoodId) {
+          return socket.emit('error', { message: 'User or neighborhood not found' });
         }
 
         const neighborhoodId = data.neighborhoodId || user.neighborhoodId;
         
-        if (neighborhoodId) {
-          // Broadcast to neighborhood
-          io.to(`neighborhood:${neighborhoodId}`).emit('new_alert', {
-            id: Math.random().toString(36).substring(7),
-            type: data.type,
-            title: data.title,
-            message: data.message,
-            userId: socket.userId,
-            userName: user.name || 'Anonymous',
-            neighborhoodId,
-            timestamp: new Date().toISOString()
-          });
-        }
+        io.to(`neighborhood:${neighborhoodId}`).emit('new_alert', {
+          id: Math.random().toString(36).substring(7),
+          type: data.type,
+          title: data.title,
+          message: data.message,
+          userId: socket.user.id,
+          userName: user.name || 'Anonymous',
+          neighborhoodId,
+          timestamp: new Date().toISOString()
+        });
 
-        // Send confirmation to sender
         socket.emit('alert_created', { success: true });
       } catch (error) {
         console.error('Alert creation error:', error);
@@ -106,18 +118,16 @@ export const setupSocket = (io: Server) => {
       type: 'text' | 'alert_update' | 'booking_request';
     }) => {
       try {
-        if (!socket.userId) {
-          socket.emit('error', { message: 'Not authenticated' });
-          return;
+        if (!socket.user) {
+          return socket.emit('error', { message: 'Not authenticated' });
         }
 
         const recipientSocketId = connectedUsers.get(data.recipientId);
         
         if (recipientSocketId) {
-          // Send to specific user
           io.to(recipientSocketId).emit('new_message', {
             id: Math.random().toString(36).substring(7),
-            senderId: socket.userId,
+            senderId: socket.user.id,
             recipientId: data.recipientId,
             message: data.message,
             type: data.type,
@@ -125,7 +135,6 @@ export const setupSocket = (io: Server) => {
           });
         }
 
-        // Send confirmation to sender
         socket.emit('message_sent', { success: true, recipientId: data.recipientId });
       } catch (error) {
         console.error('Message sending error:', error);
@@ -135,14 +144,18 @@ export const setupSocket = (io: Server) => {
 
     // Handle subscription to alert updates
     socket.on('subscribe_alert', (alertId: string) => {
-      socket.join(`alert:${alertId}`);
-      console.log(`User ${socket.userId} subscribed to alert ${alertId}`);
+        if (socket.user) {
+            socket.join(`alert:${alertId}`);
+            console.log(`User ${socket.user.id} subscribed to alert ${alertId}`);
+        }
     });
 
     // Handle unsubscribe from alert updates
     socket.on('unsubscribe_alert', (alertId: string) => {
-      socket.leave(`alert:${alertId}`);
-      console.log(`User ${socket.userId} unsubscribed from alert ${alertId}`);
+        if (socket.user) {
+            socket.leave(`alert:${alertId}`);
+            console.log(`User ${socket.user.id} unsubscribed from alert ${alertId}`);
+        }
     });
 
     // Handle alert updates
@@ -152,26 +165,23 @@ export const setupSocket = (io: Server) => {
       status?: string;
     }) => {
       try {
-        if (!socket.userId) {
-          socket.emit('error', { message: 'Not authenticated' });
-          return;
+        if (!socket.user) {
+          return socket.emit('error', { message: 'Not authenticated' });
         }
 
         const user = await db.user.findUnique({
-          where: { id: socket.userId }
+          where: { id: socket.user.id }
         });
 
         if (!user) {
-          socket.emit('error', { message: 'User not found' });
-          return;
+          return socket.emit('error', { message: 'User not found' });
         }
 
-        // Broadcast update to all subscribed users
         io.to(`alert:${data.alertId}`).emit('alert_updated', {
           alertId: data.alertId,
           update: data.update,
           status: data.status,
-          updatedBy: socket.userId,
+          updatedBy: socket.user.id,
           updatedByName: user.name || 'Anonymous',
           timestamp: new Date().toISOString()
         });
@@ -183,27 +193,16 @@ export const setupSocket = (io: Server) => {
       }
     });
 
-    // Handle messages (legacy support)
-    socket.on('message', (msg: { text: string; senderId: string }) => {
-      socket.emit('message', {
-        text: `Echo: ${msg.text}`,
-        senderId: 'system',
-        timestamp: new Date().toISOString(),
-      });
-    });
-
     // Handle disconnect
     socket.on('disconnect', () => {
       console.log('Client disconnected:', socket.id);
-      
-      // Remove from connected users
-      if (socket.userId) {
-        connectedUsers.delete(socket.userId);
-        console.log(`User ${socket.userId} disconnected`);
+      if (socket.user) {
+        connectedUsers.delete(socket.user.id);
+        console.log(`User ${socket.user.id} disconnected`);
       }
     });
 
-    // Send welcome message
+    // Send a welcome message on initial connection
     socket.emit('message', {
       text: 'Welcome to LocalSeva Real-time Server!',
       senderId: 'system',

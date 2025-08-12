@@ -9,13 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { 
-  Droplets, 
-  Zap, 
-  Search, 
-  Car, 
-  Users, 
-  MapPin, 
+import {
+  Droplets,
+  Zap,
+  Search,
+  Car,
+  Users,
+  MapPin,
   Clock,
   Plus,
   Bell,
@@ -107,7 +107,7 @@ export default function Home() {
           }
           if (alertsResponse.ok) {
             // Show only first 3 alerts on homepage
-            setLocalAlerts(alertsData.alerts.slice(0, 3));
+            setLocalAlerts((alertsData.alerts || []).slice(0, 3));
           }
         } catch (error) {
           console.error('Error fetching data:', error);
@@ -242,8 +242,8 @@ export default function Home() {
     </div>
   );
 
-  const filteredActivities = activeTab === "all" 
-    ? activities 
+  const filteredActivities = activeTab === "all"
+    ? activities
     : activities.filter(activity => activity.type === activeTab);
 
   // Pagination logic
@@ -368,7 +368,7 @@ export default function Home() {
                     const now = new Date();
                     const date = new Date(dateString);
                     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-                    
+
                     if (diffInHours < 1) {
                       const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
                       return diffInMinutes <= 1 ? "Just now" : `${diffInMinutes} minutes ago`;
@@ -565,13 +565,13 @@ export default function Home() {
                                   <span className="text-gray-500 text-xs">{user?.neighborhood?.name || 'Your Area'}</span>
                                 </div>
                               </div>
-                              
+
                               {/* Content */}
                               <div className="mb-4">
                                 <h4 className="font-semibold text-gray-900 text-lg mb-2 leading-tight">{activity.title}</h4>
                                 <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">{activity.description}</p>
                               </div>
-                              
+
                               {/* Type Badge and Actions */}
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
@@ -602,7 +602,7 @@ export default function Home() {
                         </div>
                       </div>
                     ))}
-                    
+
                     {/* Pagination Controls */}
                     {totalPages > 1 && (
                       <div className="flex items-center justify-center space-x-2 p-4 border-t bg-gray-50">
@@ -627,7 +627,7 @@ export default function Home() {
                             } else {
                               pageNum = currentPage - 2 + i;
                             }
-                            
+
                             return (
                               <Button
                                 key={pageNum}

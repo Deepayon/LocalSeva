@@ -44,9 +44,9 @@ export const useRealTime = () => {
   useEffect(() => {
     if (user && sessionToken) {
       console.log('Attempting to connect to WebSocket server...');
-      // Initialize socket connection
-      const newSocket = io('http://localhost:3004', {
-        path: '/api/socketio',
+      // Initialize socket connection to the correct backend port
+      const newSocket = io('http://localhost:3001', { // <-- FIX: Changed port from 3002 to 3001
+        path: '/socket.io', // Standard path for socket.io
         transports: ['websocket', 'polling'],
         timeout: 5000,
         reconnection: true,

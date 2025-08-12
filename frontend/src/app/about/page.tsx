@@ -119,12 +119,12 @@ export default function AboutPage() {
       bio: "Passionate about building community-driven solutions for urban challenges.",
     },
     {
-      name: "Priya Sharma",
+      name: "Bishal Das",
       role: "CTO",
       bio: "Technology enthusiast with expertise in scalable platforms and user experience.",
     },
     {
-      name: "Rahul Patel",
+      name: "Aditya Shaw",
       role: "Head of Operations",
       bio: "Community building expert with a background in urban development.",
     },

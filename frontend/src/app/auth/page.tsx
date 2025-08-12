@@ -29,12 +29,12 @@ export default function AuthPage() {
       setError("Please enter a valid 10-digit phone number");
       return;
     }
-    
+
     setLoading(true);
     setError("");
-    
+
     console.log("Sending OTP for phone:", phone);
-    
+
     try {
       const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
@@ -45,7 +45,7 @@ export default function AuthPage() {
       });
 
       console.log("Send OTP response status:", response.status);
-      
+
       const data = await response.json();
       console.log("Send OTP response data:", data);
 
@@ -73,12 +73,12 @@ export default function AuthPage() {
       setError("Please enter a valid 6-digit OTP");
       return;
     }
-    
+
     setLoading(true);
     setError("");
-    
+
     console.log("Verifying OTP for phone:", phone, "OTP:", otp);
-    
+
     try {
       const response = await fetch('/api/auth/verify-otp', {
         method: 'POST',
@@ -89,19 +89,19 @@ export default function AuthPage() {
       });
 
       console.log("Verify OTP response status:", response.status);
-      
+
       const data = await response.json();
       console.log("Verify OTP response data:", data);
 
       if (data.success) {
         // Store user data and session token in localStorage
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('sessionToken', data.sessionToken);
-        login(data.user, data.sessionToken);
-        
+        localStorage.setItem('sessionToken', data.token);
+        login(data.token);
+
         // If user is new (no name), go to profile completion
         // If user exists, go directly to home
-        if (data.user.isNewUser) {
+        if (data.isNewUser) {
           setIsExistingUser(false);
           setStep("profile");
         } else {
@@ -124,14 +124,14 @@ export default function AuthPage() {
       setError("Please enter your name");
       return;
     }
-    
+
     setLoading(true);
     setError("");
-    
+
     try {
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
       console.log("Completing profile for user:", userData);
-      
+
       const response = await fetch('/api/auth/complete-profile', {
         method: 'POST',
         headers: {
@@ -146,14 +146,14 @@ export default function AuthPage() {
       });
 
       console.log("Complete profile response status:", response.status);
-      
+
       const data = await response.json();
       console.log("Complete profile response data:", data);
 
       if (data.success) {
         // Update user data in localStorage
         localStorage.setItem('user', JSON.stringify(data.user));
-        login(data.user, localStorage.getItem('sessionToken') || '');
+        login(localStorage.getItem('sessionToken') || '');
         router.push("/");
       } else {
         setError(data.error || "Failed to complete profile");
@@ -182,7 +182,7 @@ export default function AuthPage() {
             Connect with your neighborhood community
           </p>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {error && (
             <Alert variant="destructive">
@@ -209,9 +209,9 @@ export default function AuthPage() {
                   />
                 </div>
               </div>
-              
-              <Button 
-                onClick={handleSendOTP} 
+
+              <Button
+                onClick={handleSendOTP}
                 disabled={loading}
                 className="w-full"
               >
@@ -237,7 +237,7 @@ export default function AuthPage() {
                   </div>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="otp">One-Time Password</Label>
                 <Input
@@ -250,17 +250,17 @@ export default function AuthPage() {
                   className="text-center text-lg tracking-widest"
                 />
               </div>
-              
-              <Button 
-                onClick={handleVerifyOTP} 
+
+              <Button
+                onClick={handleVerifyOTP}
                 disabled={loading}
                 className="w-full"
               >
                 {loading ? "Verifying..." : isExistingUser ? "Login" : "Verify & Continue"}
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 onClick={() => {
                   setStep("phone");
                   setDemoOtp("");
@@ -284,7 +284,7 @@ export default function AuthPage() {
                   Welcome to LocalSeva! Please tell us a bit about yourself.
                 </p>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>
                 <Input
@@ -295,7 +295,7 @@ export default function AuthPage() {
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email (Optional)</Label>
                 <Input
@@ -306,7 +306,7 @@ export default function AuthPage() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="neighborhood">Neighborhood</Label>
                 <div className="relative">
@@ -324,9 +324,9 @@ export default function AuthPage() {
                   Start typing your neighborhood name, or enter a new one
                 </p>
               </div>
-              
-              <Button 
-                onClick={handleCompleteProfile} 
+
+              <Button
+                onClick={handleCompleteProfile}
                 disabled={loading}
                 className="w-full"
               >

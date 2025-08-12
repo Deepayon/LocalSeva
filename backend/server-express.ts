@@ -1,70 +1,68 @@
 import express from 'express';
 import cors from 'cors';
-import bodyParser from 'body-parser';
+import morgan from 'morgan';
+import helmet from 'helmet';
 import { PrismaClient } from '@prisma/client';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import { setupSocket } from './ws/socket';
 
+// --- IMPORTANT: Use require for CommonJS route files ---
+const authRoutes = require('./routes/auth');
+const communityRoutes = require('./routes/community');
+
+// Initialize Express app and Prisma Client
 const app = express();
 const db = new PrismaClient();
+const httpServer = createServer(app);
 
-app.use(cors());
-app.use(bodyParser.json());
-
-// Send OTP
-app.post('/api/auth/send-otp', async (req, res) => {
-  try {
-    const { phone } = req.body;
-    if (!phone || phone.length !== 10) {
-      return res.status(400).json({ success: false, error: 'Invalid phone number' });
-    }
-
-    // Find or create user
-    let user = await db.user.findUnique({ where: { phone: `+91${phone}` } });
-    let isNewUser = false;
-    if (!user) {
-      isNewUser = true;
-      user = await db.user.create({
-        data: {
-          phone: `+91${phone}`,
-          verified: false,
-          trustScore: 0,
-          role: 'user',
-        },
-      });
-    }
-
-    // Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-
-    await db.user.update({
-      where: { id: user.id },
-      data: { otpCode: otp, otpExpires },
-    });
-
-    console.log(`OTP for ${phone}: ${otp}`);
-
-    res.json({
-      success: true,
-      isNewUser,
-      userId: user.id,
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined,
-    });
-  } catch (err) {
-    console.error('Send OTP error:', err);
-    res.status(500).json({ success: false, error: 'Server error' });
+// Setup Socket.IO server
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+    methods: ["GET", "POST"]
   }
 });
+setupSocket(io);
 
-// Example verify OTP route
-app.post('/api/auth/verify-otp', async (req, res) => {
-  const { phone, otp } = req.body;
-  const user = await db.user.findUnique({ where: { phone: `+91${phone}` } });
-  if (!user || user.otpCode !== otp) {
-    return res.status(400).json({ success: false, error: 'Invalid OTP' });
-  }
-  res.json({ success: true, user });
+// Middleware setup
+app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:3000" }));
+app.use(helmet());
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+// --- API Routes ---
+
+// Health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Backend is healthy' });
 });
 
-app.listen(3001, () => {
-  console.log('Backend server running on http://localhost:3001');
+// ** THE FIX IS HERE **
+// Correctly extract the router from the required module.
+// The actual router function might be on the .default property.
+const authRouter = authRoutes.default || authRoutes;
+const communityRouter = communityRoutes.default || communityRoutes;
+
+// Use the extracted routers
+app.use('/api/auth', authRouter);
+app.use('/api/community', communityRouter);
+app.use('/api', communityRouter); // Handles /api/alerts
+
+
+// --- Server Startup ---
+const PORT = process.env.PORT || 3001;
+httpServer.listen(PORT, () => {
+  console.log(`Backend server with WebSocket running on http://localhost:${PORT}`);
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  await db.$disconnect();
+  httpServer.close(() => {
+    console.log('Server has been gracefully shut down.');
+    process.exit(0);
+  });
 });

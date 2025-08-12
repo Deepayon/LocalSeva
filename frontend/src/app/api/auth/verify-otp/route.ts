@@ -1,117 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, otp } = await request.json();
+    // Get the request body from the client (phone and OTP)
+    const body = await request.json();
 
-    if (!phone || phone.length !== 10) {
-      return NextResponse.json(
-        { error: 'Invalid phone number' },
-        { status: 400 }
-      );
-    }
-
-    if (!otp || otp.length !== 6) {
-      return NextResponse.json(
-        { error: 'Invalid OTP' },
-        { status: 400 }
-      );
-    }
-
-    // Define the expected user type
-    type User = {
-      id: string;
-      phone: string;
-      name: string | null;
-      email: string | null;
-      verified: boolean;
-      trustScore: number;
-      role: string;
-      otpCode: string | null;
-      otpExpires: Date | null;
-      lastLoginAt: Date | null;
-    };
-
-    // Find user by phone
-    const user = await db.user.findUnique({
-      where: { phone: `+91${phone}` }
-    }) as User | null;
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    // Check if OTP is expired
-    if (user.otpExpires && new Date() > user.otpExpires) {
-      return NextResponse.json(
-        { error: 'OTP has expired' },
-        { status: 400 }
-      );
-    }
-
-    // Verify OTP
-    if (user.otpCode !== otp) {
-      return NextResponse.json(
-        { error: 'Invalid OTP' },
-        { status: 400 }
-      );
-    }
-
-    // Mark user as verified and clear OTP
-    const updatedUser = await db.user.update(
-      {
-        where: { id: user.id },
-        data: { 
-          verified: true,
-          otpCode: null,
-          otpExpires: null,
-          lastLoginAt: new Date()
-        }
-      },
-      {} // Add an empty options/context object as the second argument
-    ) as User;
-
-    // Create session
-    const sessionToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const sessionExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-
-    // If your db does not have a session model, you can skip session creation or implement it another way.
-    // For now, comment out or remove the session creation code to avoid the error.
-    /*
-        await db.session.create({
-          data: {
-            userId: updatedUser.id,
-            sessionToken,
-            expires: sessionExpires
-          }
-        });
-    */
-
-    return NextResponse.json({
-      success: true,
-      message: 'OTP verified successfully',
-      user: {
-        id: updatedUser.id,
-        phone: updatedUser.phone,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        verified: updatedUser.verified,
-        trustScore: updatedUser.trustScore,
-        role: updatedUser.role,
-        isNewUser: !updatedUser.name // Flag to indicate if profile completion is needed
-      },
-      sessionToken
+    // Forward the request to your backend server
+    const res = await fetch('http://localhost:3001/api/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
     });
 
+    // If the backend responds with an error, forward it
+    if (!res.ok) {
+      const errorData = await res.json();
+      return NextResponse.json(errorData, { status: res.status });
+    }
+
+    // If successful, forward the backend's data and set the cookie
+    const data = await res.json();
+    const response = NextResponse.json(data, { status: res.status });
+
+    // IMPORTANT: The JWT token is created by the backend,
+    // but the cookie is set by the Next.js frontend for the browser.
+    if (data.token) {
+      response.cookies.set('token', data.token, {
+        httpOnly: true,
+        path: '/',
+        maxAge: 60 * 60 * 24, // 1 day
+      });
+    }
+
+    return response;
+
   } catch (error) {
-    console.error('Verify OTP error:', error);
+    console.error('Proxy Error:', error);
     return NextResponse.json(
-      { error: 'Failed to verify OTP' },
-      { status: 500 }
+        { success: false, error: 'Failed to proxy request to the backend.' },
+        { status: 500 }
     );
   }
 }

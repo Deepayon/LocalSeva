@@ -1,61 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-
-/**
- * Generates a random 6-digit OTP.
- * @returns {string} The generated OTP.
- */
-const generateOtp = (): string => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-};
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone } = await request.json();
+    // Get the request body from the client (e.g., the phone number)
+    const body = await request.json();
 
-    if (!phone || !/^\d{10}$/.test(phone)) {
-      return NextResponse.json(
-        { success: false, error: 'A valid 10-digit phone number is required' },
-        { status: 400 }
-      );
+    // Forward the request to your backend server
+    const res = await fetch('http://localhost:3001/api/auth/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    // Check if the backend call was successful
+    if (!res.ok) {
+      // If not, forward the backend's error message and status
+      const errorData = await res.json();
+      return NextResponse.json(errorData, { status: res.status });
     }
 
-    const fullPhoneNumber = `+91${phone}`;
+    // If successful, forward the backend's response
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
 
-    // Generate OTP and its expiration time (10 minutes from now)
-    const otp = generateOtp();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-
-    // Find user or create a new one if they don't exist
-    const user = await db.user.upsert({
-      where: { phone: fullPhoneNumber },
-      update: {
-        otpCode: otp,
-        otpExpires: otpExpires,
-      },
-      create: {
-        phone: fullPhoneNumber,
-        otpCode: otp,
-        otpExpires: otpExpires,
-      },
-    });
-
-    // In a real application, you would send the OTP via an SMS service here.
-    // For development and testing, we log it and send it in the response.
-    console.log(`OTP for ${fullPhoneNumber}: ${otp}`);
-
-    return NextResponse.json({
-      success: true,
-      isNewUser: user.createdAt.getTime() === user.updatedAt.getTime(), // Check if the user was just created
-      userId: user.id,
-      // IMPORTANT: Only send the OTP in the response for development environments
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined,
-    });
   } catch (error) {
-    console.error('Send OTP error:', error);
+    console.error('Proxy Error:', error);
     return NextResponse.json(
-      { success: false, error: 'An unexpected error occurred on the server.' },
-      { status: 500 }
+        { success: false, error: 'Failed to proxy request to the backend.' }, 
+        { status: 500 }
     );
   }
 }
