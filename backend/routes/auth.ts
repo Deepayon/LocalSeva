@@ -5,6 +5,14 @@ import jwt from 'jsonwebtoken';
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Define a custom interface for the decoded JWT payload for type safety
+interface JwtPayload {
+  userId: string;
+  role: string;
+  iat: number;
+  exp: number;
+}
+
 const generateOtp = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
@@ -28,13 +36,12 @@ router.post('/send-otp', async (req: Request, res: Response) => {
       create: { phone: fullPhoneNumber, otpCode: otp, otpExpires },
     });
 
-    // In a real application, you would send the OTP via an SMS service here.
     console.log(`[Backend] OTP for ${fullPhoneNumber} is: ${otp}`);
 
     return res.status(200).json({
         success: true,
         message: 'OTP sent successfully.',
-        // IMPORTANT: Only send OTP in response for development
+        isNewUser: user.createdAt.getTime() === user.updatedAt.getTime(),
         otp: process.env.NODE_ENV === 'development' ? otp : undefined,
     });
 
@@ -60,7 +67,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'Invalid or expired OTP.' });
     }
 
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { phone: fullPhoneNumber },
       data: {
         verified: true,
@@ -83,12 +90,61 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       success: true,
       message: 'Login successful.',
       token: token,
+      isNewUser: user.name === null, // A simple check to see if the profile is complete
+      user: updatedUser,
     });
 
   } catch (error) {
     console.error('[Backend] Verify OTP Error:', error);
     return res.status(500).json({ success: false, error: 'Internal server error.' });
   }
+});
+
+// ** NEW ROUTE ADDED HERE **
+// Handle GET requests to /api/auth/session
+router.get('/session', async (req: Request, res: Response) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader?.split(' ')[1];
+  
+      if (!token) {
+        return res.status(401).json({ success: false, error: 'No token provided.' });
+      }
+  
+      if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET is not defined on the server.');
+      }
+  
+      const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+  
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        include: { neighborhood: true },
+      });
+  
+      if (!user) {
+        return res.status(404).json({ success: false, error: 'User not found.' });
+      }
+  
+      return res.status(200).json({
+        success: true,
+        user: {
+          id: user.id,
+          phone: user.phone,
+          name: user.name,
+          email: user.email,
+          verified: user.verified,
+          trustScore: user.trustScore,
+          role: user.role,
+          neighborhood: user.neighborhood,
+        },
+        sessionToken: token,
+      });
+  
+    } catch (error) {
+      console.error('[Backend] Session Error:', error);
+      return res.status(401).json({ success: false, error: 'Invalid or expired session.' });
+    }
 });
 
 export default router;
