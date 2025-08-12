@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// This route now only forwards the request to the backend.
+// This route's only job is to forward the request to the backend.
+// It does NOT connect to the database.
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('token')?.value;

@@ -140,7 +140,7 @@ router.get('/session', async (req: Request, res: Response) => {
 // Handle POST requests to complete a user's profile
 router.post('/complete-profile', async (req: Request, res: Response) => {
     try {
-        const { userId, name, email, neighborhood } = req.body;
+        const { name, email, neighborhood } = req.body;
         const authHeader = req.headers.authorization;
         const token = authHeader?.split(' ')[1];
 
@@ -154,18 +154,14 @@ router.post('/complete-profile', async (req: Request, res: Response) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
 
-        // Ensure the user updating the profile is the one who is logged in
-        if (decoded.userId !== userId) {
-            return res.status(403).json({ success: false, error: 'Forbidden.' });
-        }
-
+        // In a real app, you would have more robust logic to find/create a neighborhood
         const updatedUser = await prisma.user.update({
-            where: { id: userId },
+            where: { id: decoded.userId },
             data: {
                 name,
                 email,
-                // Here you would also handle finding or creating the neighborhood
             },
+            include: { neighborhood: true }
         });
 
         return res.status(200).json({ success: true, user: updatedUser });
