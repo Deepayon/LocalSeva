@@ -24,7 +24,7 @@ export default function Footer() {
                 <Heart className="h-6 w-6 text-white" />
               </div>
               <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
-                LocalSeva
+                PadosHelp
               </h3>
             </div>
             <p className="text-gray-300 text-sm leading-relaxed">
@@ -157,7 +157,7 @@ export default function Footer() {
                 <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">
                   <Mail className="h-4 w-4 text-orange-500" />
                 </div>
-                <span className="text-gray-300 text-sm group-hover:text-orange-400 transition-colors">support@localseva.app</span>
+                <span className="text-gray-300 text-sm group-hover:text-orange-400 transition-colors">support@PadosHelp.app</span>
               </div>
               <div className="flex items-start space-x-3 group">
                 <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:bg-orange-500/30 transition-colors mt-1">
@@ -184,7 +184,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
             <div className="text-gray-400 text-sm flex items-center space-x-2">
               <Heart className="h-4 w-4 text-orange-500" />
-              <span>© 2024 LocalSeva. All rights reserved.</span>
+              <span>© 2024 PadosHelp. All rights reserved.</span>
             </div>
             <div className="flex flex-wrap justify-center gap-6 text-sm">
               <Link href="/privacy" className="text-gray-400 hover:text-orange-500 transition-all duration-300 hover:scale-105 inline-flex items-center group">

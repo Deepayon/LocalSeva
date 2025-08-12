@@ -1,14 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Phone, Shield, MapPin, User } from "lucide-react";
+import { Phone, Shield, User, Mail, MapPin } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// A list of Indian states for the dropdown menu
+const indianStates = [
+  "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+];
 
 export default function AuthPage() {
   const [step, setStep] = useState<"phone" | "otp" | "profile">("phone");
@@ -17,51 +23,45 @@ export default function AuthPage() {
   const [demoOtp, setDemoOtp] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [neighborhood, setNeighborhood] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [pincode, setPincode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isExistingUser, setIsExistingUser] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user: authUser, isLoading: isAuthLoading } = useAuth();
+
+  useEffect(() => {
+    // Redirect logged-in users to the homepage
+    if (!isAuthLoading && authUser) {
+      router.push("/");
+    }
+  }, [authUser, isAuthLoading, router]);
 
   const handleSendOTP = async () => {
     if (!phone || phone.length !== 10) {
       setError("Please enter a valid 10-digit phone number");
       return;
     }
-
     setLoading(true);
     setError("");
-
-    console.log("Sending OTP for phone:", phone);
-
     try {
       const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone }),
       });
-
-      console.log("Send OTP response status:", response.status);
-
       const data = await response.json();
-      console.log("Send OTP response data:", data);
-
       if (data.success) {
-        // Set whether this is an existing user or new user
         setIsExistingUser(!data.isNewUser);
         setStep("otp");
-        // For demo purposes, show the OTP
-        if (data.otp) {
-          setDemoOtp(data.otp);
-        }
+        if (data.otp) setDemoOtp(data.otp);
       } else {
         setError(data.error || "Failed to send OTP");
       }
-    } catch (error) {
-      console.error('Send OTP error:', error);
+    } catch (err) {
+      console.error('Send OTP error:', err);
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -73,46 +73,28 @@ export default function AuthPage() {
       setError("Please enter a valid 6-digit OTP");
       return;
     }
-
     setLoading(true);
     setError("");
-
-    console.log("Verifying OTP for phone:", phone, "OTP:", otp);
-
     try {
       const response = await fetch('/api/auth/verify-otp', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, otp }),
       });
-
-      console.log("Verify OTP response status:", response.status);
-
       const data = await response.json();
-      console.log("Verify OTP response data:", data);
-
-      if (data.success) {
-        // Store user data and session token in localStorage
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('sessionToken', data.token);
+      if (data.success && data.token) {
+        // The login function from context securely handles the token
         login(data.token);
-
-        // If user is new (no name), go to profile completion
-        // If user exists, go directly to home
         if (data.isNewUser) {
-          setIsExistingUser(false);
           setStep("profile");
         } else {
-          setIsExistingUser(true);
           router.push("/");
         }
       } else {
         setError(data.error || "Failed to verify OTP");
       }
-    } catch (error) {
-      console.error('Verify OTP error:', error);
+    } catch (err) {
+      console.error('Verify OTP error:', err);
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -120,51 +102,42 @@ export default function AuthPage() {
   };
 
   const handleCompleteProfile = async () => {
-    if (!name.trim()) {
-      setError("Please enter your name");
+    if (!name.trim() || !city.trim() || !state || !pincode.trim()) {
+      setError("Please fill in all required location fields.");
       return;
     }
-
     setLoading(true);
     setError("");
-
     try {
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      console.log("Completing profile for user:", userData);
-
+      // This API call is now authenticated by the secure cookie
       const response = await fetch('/api/auth/complete-profile', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userData.id,
-          name,
-          email,
-          neighborhood
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, city, state, pincode }),
       });
-
-      console.log("Complete profile response status:", response.status);
-
       const data = await response.json();
-      console.log("Complete profile response data:", data);
-
-      if (data.success) {
-        // Update user data in localStorage
-        localStorage.setItem('user', JSON.stringify(data.user));
-        login(localStorage.getItem('sessionToken') || '');
+      if (data.success && data.token) {
+        // Login with the new token containing the updated user info
+        login(data.token);
         router.push("/");
       } else {
         setError(data.error || "Failed to complete profile");
       }
-    } catch (error) {
-      console.error('Complete profile error:', error);
+    } catch (err) {
+      console.error('Complete profile error:', err);
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (isAuthLoading || (!isAuthLoading && authUser)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center p-4">
@@ -182,7 +155,7 @@ export default function AuthPage() {
             Connect with your neighborhood community
           </p>
         </CardHeader>
-
+        
         <CardContent className="space-y-4">
           {error && (
             <Alert variant="destructive">
@@ -209,9 +182,9 @@ export default function AuthPage() {
                   />
                 </div>
               </div>
-
-              <Button
-                onClick={handleSendOTP}
+              
+              <Button 
+                onClick={handleSendOTP} 
                 disabled={loading}
                 className="w-full"
               >
@@ -230,14 +203,14 @@ export default function AuthPage() {
                   {isExistingUser ? "Welcome back! Logging you in..." : "New user! Please complete your profile after OTP verification."}
                 </p>
                 {demoOtp && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 my-4">
                     <p className="text-sm font-medium text-blue-800">Demo OTP:</p>
                     <p className="text-2xl font-bold text-blue-600 tracking-widest">{demoOtp}</p>
                     <p className="text-xs text-blue-600 mt-1">(This is only shown in development mode)</p>
                   </div>
                 )}
               </div>
-
+              
               <div className="space-y-2">
                 <Label htmlFor="otp">One-Time Password</Label>
                 <Input
@@ -250,17 +223,17 @@ export default function AuthPage() {
                   className="text-center text-lg tracking-widest"
                 />
               </div>
-
-              <Button
-                onClick={handleVerifyOTP}
+              
+              <Button 
+                onClick={handleVerifyOTP} 
                 disabled={loading}
                 className="w-full"
               >
                 {loading ? "Verifying..." : isExistingUser ? "Login" : "Verify & Continue"}
               </Button>
-
-              <Button
-                variant="outline"
+              
+              <Button 
+                variant="outline" 
                 onClick={() => {
                   setStep("phone");
                   setDemoOtp("");
@@ -284,7 +257,7 @@ export default function AuthPage() {
                   Welcome to LocalSeva! Please tell us a bit about yourself.
                 </p>
               </div>
-
+              
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>
                 <Input
@@ -293,9 +266,10 @@ export default function AuthPage() {
                   placeholder="Enter your full name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  required
                 />
               </div>
-
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email (Optional)</Label>
                 <Input
@@ -306,27 +280,29 @@ export default function AuthPage() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="neighborhood">Neighborhood</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                  <Input
-                    id="neighborhood"
-                    type="text"
-                    placeholder="Sector 2, Salt Lake, Kolkata"
-                    value={neighborhood}
-                    onChange={(e) => setNeighborhood(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <p className="text-xs text-gray-500">
-                  Start typing your neighborhood name, or enter a new one
-                </p>
+                <Label>State *</Label>
+                <Select onValueChange={setState} required>
+                    <SelectTrigger><SelectValue placeholder="Select your state" /></SelectTrigger>
+                    <SelectContent>
+                        {indianStates.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                </Select>
               </div>
 
-              <Button
-                onClick={handleCompleteProfile}
+              <div className="space-y-2">
+                  <Label htmlFor="city">City / Town *</Label>
+                  <Input id="city" type="text" placeholder="e.g., Asansol, Kolkata" value={city} onChange={(e) => setCity(e.target.value)} required />
+              </div>
+              
+              <div className="space-y-2">
+                  <Label htmlFor="pincode">PIN Code *</Label>
+                  <Input id="pincode" type="text" placeholder="Enter your 6-digit PIN code" value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))} maxLength={6} required />
+              </div>
+              
+              <Button 
+                onClick={handleCompleteProfile} 
                 disabled={loading}
                 className="w-full"
               >

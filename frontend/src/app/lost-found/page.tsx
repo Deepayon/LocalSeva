@@ -172,9 +172,9 @@ export default function LostFoundPage() {
     // Open WhatsApp with pre-filled message based on item type
     let message = '';
     if (itemType === 'lost') {
-      message = encodeURIComponent(`Hi ${userName}, I saw your lost item "${itemTitle}" on LocalSeva. I might have some information about it. Can we discuss?`);
+      message = encodeURIComponent(`Hi ${userName}, I saw your lost item "${itemTitle}" on PadosHelp. I might have some information about it. Can we discuss?`);
     } else {
-      message = encodeURIComponent(`Hi ${userName}, I saw your found item "${itemTitle}" on LocalSeva. I think it might be something I lost. Can we discuss the details?`);
+      message = encodeURIComponent(`Hi ${userName}, I saw your found item "${itemTitle}" on PadosHelp. I think it might be something I lost. Can we discuss the details?`);
     }
     window.open(`https://wa.me/?text=${message}`, '_blank');
   };

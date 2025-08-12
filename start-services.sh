@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Starting LocalSeva services..."
+echo "Starting PadosHelp services..."
 
 # Kill any existing processes
 pkill -f "node\|npm\|next" 2>/dev/null || true

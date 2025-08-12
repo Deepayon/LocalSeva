@@ -89,7 +89,7 @@ export default function AboutPage() {
   const timeline = [
     {
       year: "2024",
-      title: "LocalSeva Founded",
+      title: "PadosHelp Founded",
       description:
         "Started with a vision to connect Indian neighborhoods through technology.",
     },
@@ -129,8 +129,8 @@ export default function AboutPage() {
       bio: "Community building expert with a background in urban development.",
     },
     {
-      name: "Ananya Reddy",
-      role: "Head of Marketing",
+      name: "Yaseer Hassan",
+      role: "CFO",
       bio: "Marketing strategist focused on community engagement and growth.",
     },
   ];
@@ -140,7 +140,7 @@ export default function AboutPage() {
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-6">About LocalSeva</h1>
+          <h1 className="text-5xl font-bold mb-6">About PadosHelp</h1>
           <p className="text-xl text-orange-100 mb-8 max-w-3xl mx-auto">
             Building stronger communities through technology, trust, and mutual
             support. We're India's leading hyperlocal platform connecting neighbors
@@ -190,7 +190,7 @@ export default function AboutPage() {
             <div>
               <h2 className="text-4xl font-bold mb-6">Our Mission</h2>
               <p className="text-lg text-gray-600 mb-6">
-                At LocalSeva, we believe in the power of community. Our mission
+                At PadosHelp, we believe in the power of community. Our mission
                 is to strengthen neighborhood bonds by creating a trusted
                 platform where residents can easily share services, information,
                 and resources.

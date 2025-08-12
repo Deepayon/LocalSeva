@@ -14,20 +14,20 @@ import AuthSync from "../components/auth-sync";
 // });
 
 export const metadata: Metadata = {
-  title: "LocalSeva - Hyperlocal Community Service Exchange",
+  title: "PadosHelp - Hyperlocal Community Service Exchange",
   description: "Connect with your neighborhood for water schedules, power alerts, skill exchange, lost & found, and parking services.",
-  keywords: ["LocalSeva", "community", "neighborhood", "services", "India", "hyperlocal"],
-  authors: [{ name: "LocalSeva Team" }],
+  keywords: ["PadosHelp", "community", "neighborhood", "services", "India", "hyperlocal"],
+  authors: [{ name: "PadosHelp Team" }],
   openGraph: {
-    title: "LocalSeva - Community Service Exchange",
+    title: "PadosHelp - Community Service Exchange",
     description: "Hyperlocal platform for Indian neighborhoods to share services and information",
-    url: "https://localseva.app",
-    siteName: "LocalSeva",
+    url: "https://PadosHelp.app",
+    siteName: "PadosHelp",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "LocalSeva - Community Service Exchange",
+    title: "PadosHelp - Community Service Exchange",
     description: "Hyperlocal platform for Indian neighborhoods",
   },
 };

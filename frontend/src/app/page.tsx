@@ -263,7 +263,7 @@ export default function Home() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold mb-2">
-              Welcome to LocalSeva
+              Welcome to PadosHelp
             </h1>
             <p className="text-orange-100 mb-4">
               Your neighborhood community platform for sharing services and information

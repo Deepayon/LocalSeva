@@ -1,11 +1,11 @@
-# LocalSeva - Hyperlocal Community Platform
+# PadosHelp - Hyperlocal Community Platform
 
 A clean, organized project structure for connecting neighborhoods through shared services and information exchange.
 
 ## 📁 Project Structure
 
 ```
-localseva/
+PadosHelp/
 ├── frontend/                          # Next.js frontend app
 │   ├── app/                           # Next.js App Router
 │   ├── components/                    # React components

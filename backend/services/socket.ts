@@ -205,7 +205,7 @@ export const setupSocket = (io: Server) => {
 
     // Send welcome message
     socket.emit('message', {
-      text: 'Welcome to LocalSeva Real-time Server!',
+      text: 'Welcome to PadosHelp Real-time Server!',
       senderId: 'system',
       timestamp: new Date().toISOString(),
     });

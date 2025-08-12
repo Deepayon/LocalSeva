@@ -140,7 +140,7 @@ router.get('/session', async (req: Request, res: Response) => {
 // Handle POST requests to complete a user's profile
 router.post('/complete-profile', async (req: Request, res: Response) => {
     try {
-        const { name, email, neighborhood } = req.body;
+        const { name, email, state, city, pincode } = req.body;
         const authHeader = req.headers.authorization;
         const token = authHeader?.split(' ')[1];
 
@@ -153,24 +153,58 @@ router.post('/complete-profile', async (req: Request, res: Response) => {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+        const userId = decoded.userId;
 
-        // In a real app, you would have more robust logic to find/create a neighborhood
+        // --- NEIGHBORHOOD LOGIC (MVP) ---
+        let neighborhoodRecord;
+        if (state && city && pincode) {
+            const neighborhoodName = `${city}, ${state}, ${pincode}`;
+            
+            // Try to find an existing neighborhood based on the unique name
+            neighborhoodRecord = await prisma.neighborhood.findFirst({
+                // ** THE FIX IS HERE: Removed `mode: 'insensitive'` which is not supported by SQLite **
+                where: { name: { equals: neighborhoodName } }
+            });
+
+            // If it doesn't exist, create a new one
+            if (!neighborhoodRecord) {
+                neighborhoodRecord = await prisma.neighborhood.create({
+                    data: {
+                        name: neighborhoodName,
+                        city: city.trim(),
+                        state: state,
+                        pincode: pincode,
+                        latitude: 0, // Placeholder for MVP
+                        longitude: 0, // Placeholder for MVP
+                    }
+                });
+            }
+        }
+
+        // Update the user's profile with their name, email, and neighborhood ID
         const updatedUser = await prisma.user.update({
-            where: { id: decoded.userId },
+            where: { id: userId },
             data: {
                 name,
                 email,
+                neighborhoodId: neighborhoodRecord ? neighborhoodRecord.id : null,
             },
             include: { neighborhood: true }
         });
 
-        return res.status(200).json({ success: true, user: updatedUser });
+        // Create a new token with the updated user info
+        const newToken = jwt.sign(
+            { userId: updatedUser.id, role: updatedUser.role, name: updatedUser.name },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        return res.status(200).json({ success: true, user: updatedUser, token: newToken });
 
     } catch (error) {
         console.error('[Backend] Profile Completion Error:', error);
         return res.status(500).json({ success: false, error: 'Internal server error.' });
     }
 });
-
 
 export default router;

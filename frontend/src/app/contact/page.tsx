@@ -190,7 +190,7 @@ export default function ContactPage() {
                   <Mail className="h-5 w-5 text-orange-500 mt-1" />
                   <div>
                     <h4 className="font-medium">Email</h4>
-                    <p className="text-gray-600">support@localseva.app</p>
+                    <p className="text-gray-600">support@PadosHelp.app</p>
                     <p className="text-sm text-gray-500">24/7 Support</p>
                   </div>
                 </div>
@@ -279,7 +279,7 @@ export default function ContactPage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Is LocalSeva free to use?</CardTitle>
+                <CardTitle className="text-lg">Is PadosHelp free to use?</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
@@ -293,7 +293,7 @@ export default function ContactPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Use the contact form above or email us at support@localseva.app. We typically respond within 24 hours.
+                  Use the contact form above or email us at support@PadosHelp.app. We typically respond within 24 hours.
                 </p>
               </CardContent>
             </Card>
