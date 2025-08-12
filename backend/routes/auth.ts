@@ -100,8 +100,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
   }
 });
 
-// ** NEW ROUTE ADDED HERE **
-// Handle GET requests to /api/auth/session
+// Handle GET requests for session data
 router.get('/session', async (req: Request, res: Response) => {
     try {
       const authHeader = req.headers.authorization;
@@ -128,16 +127,7 @@ router.get('/session', async (req: Request, res: Response) => {
   
       return res.status(200).json({
         success: true,
-        user: {
-          id: user.id,
-          phone: user.phone,
-          name: user.name,
-          email: user.email,
-          verified: user.verified,
-          trustScore: user.trustScore,
-          role: user.role,
-          neighborhood: user.neighborhood,
-        },
+        user,
         sessionToken: token,
       });
   
@@ -146,5 +136,45 @@ router.get('/session', async (req: Request, res: Response) => {
       return res.status(401).json({ success: false, error: 'Invalid or expired session.' });
     }
 });
+
+// Handle POST requests to complete a user's profile
+router.post('/complete-profile', async (req: Request, res: Response) => {
+    try {
+        const { userId, name, email, neighborhood } = req.body;
+        const authHeader = req.headers.authorization;
+        const token = authHeader?.split(' ')[1];
+
+        if (!token) {
+            return res.status(401).json({ success: false, error: 'No token provided.' });
+        }
+
+        if (!process.env.JWT_SECRET) {
+            throw new Error('JWT_SECRET is not defined on the server.');
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+
+        // Ensure the user updating the profile is the one who is logged in
+        if (decoded.userId !== userId) {
+            return res.status(403).json({ success: false, error: 'Forbidden.' });
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                name,
+                email,
+                // Here you would also handle finding or creating the neighborhood
+            },
+        });
+
+        return res.status(200).json({ success: true, user: updatedUser });
+
+    } catch (error) {
+        console.error('[Backend] Profile Completion Error:', error);
+        return res.status(500).json({ success: false, error: 'Internal server error.' });
+    }
+});
+
 
 export default router;
