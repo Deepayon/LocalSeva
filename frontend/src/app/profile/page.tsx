@@ -1,206 +1,357 @@
 "use client";
 
-import { useAuth } from "@/context/auth-context";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  User,
-  MapPin,
-  Phone,
-  Mail,
-  Calendar,
-  Shield,
-  Star,
-  Edit,
-  Settings,
-  Award,
-} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Phone, Shield, MapPin, User } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
-export default function ProfilePage() {
-  const { user } = useAuth();
+export default function AuthPage() {
+  const [step, setStep] = useState<"phone" | "otp" | "profile">("phone");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [demoOtp, setDemoOtp] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [isExistingUser, setIsExistingUser] = useState(false);
+  const router = useRouter();
+  const { login, user: authUser, isLoading: isAuthLoading } = useAuth();
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Please Login</h2>
-          <p className="text-gray-600 mb-6">You need to be logged in to view profile</p>
-          <Button onClick={() => window.location.href = "/auth"}>
-            Login / Sign Up
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    // Redirect if user is already logged in
+    if (!isAuthLoading && authUser) {
+      router.push("/");
+    }
+  }, [authUser, isAuthLoading, router]);
+
+  const handleSendOTP = async () => {
+    if (!phone || phone.length !== 10) {
+      setError("Please enter a valid 10-digit phone number");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    console.log("Sending OTP for phone:", phone);
+
+    try {
+      const response = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone }),
+      });
+
+      console.log("Send OTP response status:", response.status);
+
+      const data = await response.json();
+      console.log("Send OTP response data:", data);
+
+      if (data.success) {
+        // Set whether this is an existing user or new user
+        setIsExistingUser(!data.isNewUser);
+        setStep("otp");
+        // For demo purposes, show the OTP
+        if (data.otp) {
+          setDemoOtp(data.otp);
+        }
+      } else {
+        setError(data.error || "Failed to send OTP");
+      }
+    } catch (error) {
+      console.error('Send OTP error:', error);
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (!otp || otp.length !== 6) {
+      setError("Please enter a valid 6-digit OTP");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    console.log("Verifying OTP for phone:", phone, "OTP:", otp);
+
+    try {
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone, otp }),
+      });
+
+      console.log("Verify OTP response status:", response.status);
+
+      const data = await response.json();
+      console.log("Verify OTP response data:", data);
+
+      if (data.success && data.token) {
+        // ** THE FIX IS HERE **
+        // Securely log in using the token from the API response.
+        // The auth context will handle decoding the token and setting the user state.
+        login(data.token);
+
+        // Check the isNewUser flag from the API to direct the user.
+        if (data.isNewUser) {
+          setIsExistingUser(false);
+          setStep("profile");
+        } else {
+          setIsExistingUser(true);
+          router.push("/");
+        }
+      } else {
+        setError(data.error || "Failed to verify OTP");
+      }
+    } catch (error) {
+      console.error('Verify OTP error:', error);
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteProfile = async () => {
+    if (!name.trim()) {
+      setError("Please enter your name");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      // This API call is now authenticated by the secure httpOnly cookie
+      const response = await fetch('/api/auth/complete-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          neighborhood
+        }),
+      });
+
+      console.log("Complete profile response status:", response.status);
+
+      const data = await response.json();
+      console.log("Complete profile response data:", data);
+
+      if (data.success && data.token) {
+        // ** THE FIX IS HERE **
+        // Log in with the new token that contains the updated user details.
+        login(data.token);
+        router.push("/");
+      } else {
+        setError(data.error || "Failed to complete profile");
+      }
+    } catch (error) {
+      console.error('Complete profile error:', error);
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
-              <p className="text-gray-600 mt-1">Manage your personal information</p>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+              <Shield className="w-6 h-6 text-white" />
             </div>
-            <Button>
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
           </div>
-        </div>
-      </div>
+          <CardTitle className="text-2xl font-bold text-gray-900">
+            Welcome to LocalSeva
+          </CardTitle>
+          <p className="text-gray-600">
+            Connect with your neighborhood community
+          </p>
+        </CardHeader>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Profile Overview */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
-              <Avatar className="w-24 h-24">
-                <AvatarImage src={user.avatar} alt={user.name || "User"} />
-                <AvatarFallback className="text-2xl">{(user.name || "U").charAt(0)}</AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 text-center md:text-left">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{user.name || "User"}</h2>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant={user.verified ? "default" : "secondary"}>
-                        {user.verified ? "Verified" : "Unverified"}
-                      </Badge>
-                      {user.verified && (
-                        <Shield className="w-4 h-4 text-blue-600" />
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 mt-2 md:mt-0">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{user.trustScore || 4.5}</span>
-                    <span className="text-sm text-gray-600">Trust Score</span>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 text-sm">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Phone className="w-4 h-4" />
-                    <span>{user.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Mail className="w-4 h-4" />
-                    <span>{user.email || "No email provided"}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <MapPin className="w-4 h-4" />
-                    <span>Sector II, Saltlake</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    <span>Member since Nov 2024</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <CardContent className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600 mb-1">24</div>
-              <div className="text-sm text-gray-600">Community Posts</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600 mb-1">18</div>
-              <div className="text-sm text-gray-600">Helpful Actions</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600 mb-1">4.8</div>
-              <div className="text-sm text-gray-600">Average Rating</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="w-5 h-5" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          {step === "phone" && (
             <div className="space-y-4">
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-blue-600 rounded-full"></div>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Posted water supply update</p>
-                  <p className="text-xs text-gray-600">2 hours ago • 12 neighbors found this helpful</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-green-600 rounded-full"></div>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Helped find lost wallet</p>
-                  <p className="text-xs text-gray-600">1 day ago • Received thank you note</p>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <div className="flex">
+                  <div className="flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50">
+                    <span className="text-sm text-gray-600">+91</span>
+                  </div>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="98765 43210"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                    maxLength={10}
+                    className="rounded-l-none"
+                  />
                 </div>
               </div>
-              
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-purple-600 rounded-full"></div>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Offered math tuition services</p>
-                  <p className="text-xs text-gray-600">3 days ago • 5 people interested</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Quick Actions */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Button variant="outline" className="justify-start" onClick={() => window.location.href = "/settings"}>
-                <Settings className="w-4 h-4 mr-2" />
-                Account Settings
-              </Button>
-              <Button variant="outline" className="justify-start" onClick={() => window.location.href = "/notifications"}>
-                <Award className="w-4 h-4 mr-2" />
-                Notification Preferences
-              </Button>
-              <Button variant="outline" className="justify-start">
-                <Shield className="w-4 h-4 mr-2" />
-                Privacy Settings
-              </Button>
-              <Button variant="outline" className="justify-start">
-                <Star className="w-4 h-4 mr-2" />
-                My Reviews
+              <Button
+                onClick={handleSendOTP}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? "Sending..." : "Send OTP"}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+
+          {step === "otp" && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">
+                  Enter the 6-digit OTP sent to +91 {phone}
+                </p>
+                <p className="text-xs text-orange-600 font-medium">
+                  {isExistingUser ? "Welcome back! Logging you in..." : "New user! Please complete your profile after OTP verification."}
+                </p>
+                {demoOtp && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <p className="text-sm font-medium text-blue-800">Demo OTP:</p>
+                    <p className="text-2xl font-bold text-blue-600 tracking-widest">{demoOtp}</p>
+                    <p className="text-xs text-blue-600 mt-1">(This is only shown in development mode)</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="otp">One-Time Password</Label>
+                <Input
+                  id="otp"
+                  type="text"
+                  placeholder="Enter 6-digit OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                  maxLength={6}
+                  className="text-center text-lg tracking-widest"
+                />
+              </div>
+
+              <Button
+                onClick={handleVerifyOTP}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? "Verifying..." : isExistingUser ? "Login" : "Verify & Continue"}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setStep("phone");
+                  setDemoOtp("");
+                  setIsExistingUser(false);
+                }}
+                className="w-full"
+              >
+                Change Phone Number
+              </Button>
+            </div>
+          )}
+
+          {step === "profile" && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="flex justify-center mb-4">
+                  <User className="w-8 h-8 text-orange-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Complete Your Profile</h3>
+                <p className="text-sm text-gray-600">
+                  Welcome to LocalSeva! Please tell us a bit about yourself.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name *</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email (Optional)</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="neighborhood">Neighborhood</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <Input
+                    id="neighborhood"
+                    type="text"
+                    placeholder="Sector 2, Salt Lake, Kolkata"
+                    value={neighborhood}
+                    onChange={(e) => setNeighborhood(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <p className="text-xs text-gray-500">
+                  Start typing your neighborhood name, or enter a new one
+                </p>
+              </div>
+
+              <Button
+                onClick={handleCompleteProfile}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? "Creating Profile..." : "Complete Setup"}
+              </Button>
+            </div>
+          )}
+
+          <div className="text-center text-sm text-gray-600">
+            <p>
+              By continuing, you agree to our{" "}
+              <a href="#" className="text-orange-600 hover:underline">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a href="#" className="text-orange-600 hover:underline">
+                Privacy Policy
+              </a>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

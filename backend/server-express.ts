@@ -7,9 +7,11 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { setupSocket } from './ws/socket';
 
-// --- IMPORTANT: Use require for CommonJS route files ---
+// --- Route Imports ---
+// Using 'require' to ensure compatibility with different module export styles.
 const authRoutes = require('./routes/auth');
 const communityRoutes = require('./routes/community');
+const adminRoutes = require('./routes/admin'); // Added the admin route import
 
 // Initialize Express app and Prisma Client
 const app = express();
@@ -40,16 +42,18 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Backend is healthy' });
 });
 
-// ** THE FIX IS HERE **
-// Correctly extract the router from the required module.
-// The actual router function might be on the .default property.
+// ** Module Compatibility Fix **
+// This logic correctly extracts the router function from the imported module,
+// whether it's a CommonJS module (module.exports) or an ES module (export default).
 const authRouter = authRoutes.default || authRoutes;
 const communityRouter = communityRoutes.default || communityRoutes;
+const adminRouter = adminRoutes.default || adminRoutes; // Added the admin router
 
 // Use the extracted routers
 app.use('/api/auth', authRouter);
 app.use('/api/community', communityRouter);
-app.use('/api', communityRouter); // Handles /api/alerts
+app.use('/api/admin', adminRouter); // Added the admin router usage
+app.use('/api', communityRouter); // Handles routes like /api/alerts
 
 
 // --- Server Startup ---

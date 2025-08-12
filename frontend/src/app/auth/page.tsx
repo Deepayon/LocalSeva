@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Phone, Shield, User, Mail, MapPin } from "lucide-react";
+import { Phone, Shield, User, Mail } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -61,7 +61,6 @@ export default function AuthPage() {
         setError(data.error || "Failed to send OTP");
       }
     } catch (err) {
-      console.error('Send OTP error:', err);
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -85,6 +84,7 @@ export default function AuthPage() {
       if (data.success && data.token) {
         // The login function from context securely handles the token
         login(data.token);
+        // Explicitly check the isNewUser flag to direct the user
         if (data.isNewUser) {
           setStep("profile");
         } else {
@@ -94,7 +94,6 @@ export default function AuthPage() {
         setError(data.error || "Failed to verify OTP");
       }
     } catch (err) {
-      console.error('Verify OTP error:', err);
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -103,7 +102,7 @@ export default function AuthPage() {
 
   const handleCompleteProfile = async () => {
     if (!name.trim() || !city.trim() || !state || !pincode.trim()) {
-      setError("Please fill in all required location fields.");
+      setError("Please fill in all required fields.");
       return;
     }
     setLoading(true);
@@ -124,21 +123,14 @@ export default function AuthPage() {
         setError(data.error || "Failed to complete profile");
       }
     } catch (err) {
-      console.error('Complete profile error:', err);
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
-  if (isAuthLoading || (!isAuthLoading && authUser)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-      </div>
-    );
-  }
-
+  
+  // The rest of your JSX remains the same...
+  // ...
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
